@@ -172,7 +172,7 @@ where
 
     get_oauth_client(ctx, &query.client_id, &query.redirect_uri).await?;
 
-    tracing::debug!(?query.client_id, ?query.redirect_uri, "Verified client id and redirect uri");
+    tracing::error!(?query.client_id, ?query.redirect_uri, "Verified client id and redirect uri");
 
     // Find the configured provider for the requested remote backend. We should always have a valid
     // provider value, so if this fails then a 500 is returned
@@ -181,7 +181,7 @@ where
         .await
         .map_err(ApiError::OAuth)?;
 
-    tracing::debug!(provider = ?provider.name(), "Acquired OAuth provider for authz code login");
+    tracing::error!(provider = ?provider.name(), "Acquired OAuth provider for authz code login");
 
     // Check that the passed in scopes are valid. The scopes are not currently restricted by client
     let scope = query.scope.unwrap_or_else(|| DEFAULT_SCOPE.to_string());
@@ -359,7 +359,7 @@ where
         .await
         .map_err(ApiError::OAuth)?;
 
-    tracing::debug!(provider = ?provider.name(), "Acquired OAuth provider for authz code exchange");
+    tracing::error!(provider = ?provider.name(), "Acquired OAuth provider for authz code exchange");
 
     // Verify and extract the attempt id before performing any work
     let attempt_id = verify_csrf(&rqctx.request, &query)?;
@@ -480,7 +480,7 @@ where
     )
     .await?;
 
-    tracing::debug!("Authorized code exchange");
+    tracing::error!("Authorized code exchange");
 
     // Lookup the request assigned to this code
     let attempt = ctx
@@ -503,13 +503,13 @@ where
         body.pkce_verifier.as_deref(),
     )?;
 
-    tracing::debug!("Verified login attempt");
+    tracing::error!("Verified login attempt");
 
     // Now that the attempt has been confirmed, use it to fetch user information form the remote
     // provider
     let info = fetch_user_info(&ctx.web_client(), &*provider, &attempt).await?;
 
-    tracing::debug!("Retrieved user information from remote provider");
+    tracing::error!("Retrieved user information from remote provider");
 
     // Register this user as an API user if needed
     let (api_user_info, api_user_provider) = ctx
